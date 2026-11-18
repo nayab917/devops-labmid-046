@@ -27,6 +27,10 @@ jobs:
         id: count
         run: python -c "import xml.etree.ElementTree as E; r=E.parse('results.xml').getroot(); s=r if r.tag=='testsuite' else r[0]; print('passed=' + str(int(s.get('tests')) - int(s.get('failures')) - int(s.get('errors')) - int(s.get('skipped', 0))))" >> "$GITHUB_OUTPUT"
 
+      - name: Show all test results
+        if: always()
+        run: python show_tests.py >> "$GITHUB_STEP_SUMMARY"
+
       - name: Send test report
         if: always()
         env:
