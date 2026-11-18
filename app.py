@@ -32,8 +32,6 @@ def validate(form):
     errors = []
     if not form.get("name"):
         errors.append("Name is required.")
-    if not form.get("reg_no"):
-        errors.append("Registration number is required.")
     if not form.get("title"):
         errors.append("Assignment title is required.")
     if not form.get("url"):
