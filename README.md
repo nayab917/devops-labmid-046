@@ -1,5 +1,7 @@
 # devops-labmid-046: Assignment Submission Portal
 
+![CI](https://github.com/nayab917/devops-labmid-046/actions/workflows/ci.yml/badge.svg)
+
 DevOps Lab Mid, Nayab (SP23-BCS-046).
 
 Students enter their name, registration number, assignment title and submission URL.

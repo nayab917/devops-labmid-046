@@ -6,6 +6,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    outputs:
+      passed: ${{ steps.count.outputs.passed }}
     steps:
       - name: Get the code
         uses: actions/checkout@v7
@@ -20,6 +22,10 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -v --junitxml=results.xml
+
+      - name: Count passed tests
+        id: count
+        run: python -c "import xml.etree.ElementTree as E; r=E.parse('results.xml').getroot(); s=r if r.tag=='testsuite' else r[0]; print('passed=' + str(int(s.get('tests')) - int(s.get('failures')) - int(s.get('errors')) - int(s.get('skipped', 0))))" >> "$GITHUB_OUTPUT"
 
       - name: Send test report
         if: always()
@@ -44,6 +50,14 @@ jobs:
     steps:
       - name: Get the code
         uses: actions/checkout@v7
+
+      - name: Add deploy status to the page
+        env:
+          PASSED: ${{ needs.test.outputs.passed }}
+          RUN: ${{ github.run_number }}
+        run: |
+          TIME=$(TZ=Asia/Karachi date '+%d %b %Y, %H:%M')
+          sed -i "s/__PASSED__/$PASSED/; s/__COMMIT__/${GITHUB_SHA::7}/; s/__RUN__/$RUN/; s/__TIME__/$TIME/" docs/index.html
 
       - name: Set up Pages
         uses: actions/configure-pages@v6
