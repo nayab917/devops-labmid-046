@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignment Submission Portal (Demo)</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 0 15px; background: #f7f7fb; }
+    h1 { color: #3a2e6b; }
+    .note { background: #fff4d6; padding: 10px; border-radius: 6px; }
+    form, table { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input { width: 100%; padding: 8px; box-sizing: border-box; }
+    button { margin-top: 15px; padding: 10px 20px; background: #3a2e6b; color: #fff; border: 0; border-radius: 5px; }
+    .error { color: #b00020; }
+    .ok { color: #1b7f3b; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Assignment Submission Portal</h1>
+  <p class="note">Static demo on GitHub Pages: submissions are saved in this browser only (localStorage).
+     The real portal with server-side saving is the Flask app in the repository.</p>
+  <div id="messages"></div>
+  <form id="form">
+    <label>Student name</label><input id="name">
+    <label>Registration number</label><input id="reg_no">
+    <label>Assignment title</label><input id="title">
+    <label>Submission URL</label><input id="url">
+    <button type="submit">Submit</button>
+  </form>
+  <h2>Saved submissions</h2>
+  <table id="list"></table>
+
+  <script>
+    const KEY = "submissions";
+    function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+    function save(items) { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch (e) {} }
+    function validUrl(u) {
+      try { const p = new URL(u); return (p.protocol === "http:" || p.protocol === "https:") && p.hostname.includes("."); }
+      catch (e) { return false; }
+    }
+    function show(msgs, cls) {
+      const box = document.getElementById("messages");
+      box.innerHTML = "";
+      msgs.forEach(m => { const p = document.createElement("p"); p.className = cls; p.textContent = m; box.appendChild(p); });
+    }
+    function render() {
+      const t = document.getElementById("list");
+      t.innerHTML = "<tr><th>Name</th><th>Reg No</th><th>Title</th><th>URL</th></tr>";
+      const items = load();
+      if (!items.length) { t.innerHTML += "<tr><td colspan='4'>No submissions yet.</td></tr>"; return; }
+      items.forEach(s => {
+        const r = t.insertRow();
+        [s.name, s.reg_no, s.title].forEach(v => r.insertCell().textContent = v);
+        const a = document.createElement("a"); a.href = s.url; a.textContent = s.url; r.insertCell().appendChild(a);
+      });
+    }
+    document.getElementById("form").addEventListener("submit", e => {
+      e.preventDefault();
+      const s = {};
+      ["name", "reg_no", "title", "url"].forEach(f => s[f] = document.getElementById(f).value.trim());
+      const errors = [];
+      if (!s.name) errors.push("Name is required.");
+      if (!s.reg_no) errors.push("Registration number is required.");
+      if (!s.title) errors.push("Assignment title is required.");
+      if (!s.url) errors.push("Submission URL is required.");
+      else if (!validUrl(s.url)) errors.push("Submission URL is not valid. It must start with http:// or https://");
+      if (errors.length) { show(errors, "error"); return; }
+      const items = load(); items.push(s); save(items);
+      show(["Submission saved."], "ok"); e.target.reset(); render();
+    });
+    render();
+  </script>
+</body>
+</html>
